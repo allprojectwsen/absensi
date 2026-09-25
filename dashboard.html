@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Absensi</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      color: #222;
+    }
+
+    .header {
+      background: #111827;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .header h1 {
+      margin: 0 0 6px;
+      font-size: 24px;
+    }
+
+    .header p {
+      margin: 0;
+      opacity: 0.8;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    .filter {
+      background: white;
+      padding: 18px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .filter label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .filter input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    .filter button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: #111827;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+      font-size: 15px;
+      color: #666;
+    }
+
+    .card .number {
+      font-size: 30px;
+      font-weight: bold;
+    }
+
+    .table-box {
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 650px;
+    }
+
+    th,
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+    }
+
+    th {
+      background: #f3f4f6;
+    }
+
+    .status {
+      font-weight: bold;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+
+    .error {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      display: none;
+    }
+
+    @media (max-width: 700px) {
+      .cards {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .card .number {
+        font-size: 25px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="header">
+    <h1>📊 Dashboard Absensi</h1>
+    <p>Rekap kehadiran siswa</p>
+  </div>
+
+  <div class="container">
+
+    <div class="filter">
+
+      <label>Pilih Tanggal</label>
+
+      <input
+        type="date"
+        id="tanggal"
+      >
+
+      <button onclick="loadDashboard()">
+        🔄 Tampilkan Rekap
+      </button>
+
+    </div>
+
+    <div id="error" class="error"></div>
+
+    <div class="cards">
+
+      <div class="card">
+        <h3>Total Siswa</h3>
+        <div class="number" id="totalSiswa">-</div>
+      </div>
+
+      <div class="card">
+        <h3>Hadir</h3>
+        <div class="number" id="hadir">-</div>
+      </div>
+
+      <div class="card">
+        <h3>Izin</h3>
+        <div class="number" id="izin">-</div>
+      </div>
+
+      <div class="card">
+        <h3>Sakit</h3>
+        <div class="number" id="sakit">-</div>
+      </div>
+
+      <div class="card">
+        <h3>Alpa</h3>
+        <div class="number" id="alpa">-</div>
+      </div>
+
+      <div class="card">
+        <h3>Belum Absen</h3>
+        <div class="number" id="belumAbsen">-</div>
+      </div>
+
+    </div>
+
+    <div class="table-box">
+
+      <h2>Rekap Absensi</h2>
+
+      <div id="loading" class="loading">
+        Memuat data...
+      </div>
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Nama</th>
+            <th>Kelas</th>
+            <th>Status</th>
+            <th>Tanggal</th>
+            <th>Jam</th>
+          </tr>
+        </thead>
+
+        <tbody id="tableBody"></tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+<script>
+
+const API_URL =
+  "https://script.google.com/macros/s/AKfycbwCLZrt29EQ_CTT11r9OC0EKha4wajjnTEYR9wzTicyGi93zf-xRtDnR770q1tqw9C9/exec";
+
+const ADMIN_PIN = "123456";
+
+
+function setTanggalHariIni() {
+
+  const sekarang = new Date();
+
+  const tahun =
+    sekarang.getFullYear();
+
+  const bulan =
+    String(
+      sekarang.getMonth() + 1
+    ).padStart(2, "0");
+
+  const hari =
+    String(
+      sekarang.getDate()
+    ).padStart(2, "0");
+
+  document.getElementById("tanggal").value =
+    tahun + "-" + bulan + "-" + hari;
+}
+
+
+function formatTanggal(tanggal) {
+
+  const bagian =
+    tanggal.split("-");
+
+  if (bagian.length !== 3) {
+    return tanggal;
+  }
+
+  return (
+    bagian[2] +
+    "/" +
+    bagian[1] +
+    "/" +
+    bagian[0]
+  );
+}
+
+
+async function loadDashboard() {
+
+  const errorBox =
+    document.getElementById("error");
+
+  const loading =
+    document.getElementById("loading");
+
+  errorBox.style.display = "none";
+
+  loading.style.display = "block";
+
+
+  const tanggalInput =
+    document.getElementById("tanggal").value;
+
+
+  if (!tanggalInput) {
+
+    errorBox.innerText =
+      "Silakan pilih tanggal.";
+
+    errorBox.style.display = "block";
+
+    loading.style.display = "none";
+
+    return;
+  }
+
+
+  const tanggal =
+    formatTanggal(tanggalInput);
+
+
+  try {
+
+    const response =
+      await fetch(
+        API_URL,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "text/plain;charset=utf-8"
+          },
+
+          body:
+            JSON.stringify({
+
+              action:
+                "getDashboard",
+
+              pin:
+                ADMIN_PIN,
+
+              tanggal:
+                tanggal
+
+            })
+        }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    if (!data.success) {
+
+      throw new Error(
+        data.message ||
+        "Gagal mengambil data."
+      );
+    }
+
+
+    tampilkanDashboard(data);
+
+
+  } catch (error) {
+
+    errorBox.innerText =
+      "Gagal mengambil data: " +
+      error.message;
+
+    errorBox.style.display =
+      "block";
+  }
+
+
+  loading.style.display =
+    "none";
+}
+
+
+function tampilkanDashboard(data) {
+
+  const statistik =
+    data.statistik;
+
+
+  document.getElementById(
+    "totalSiswa"
+  ).innerText =
+    statistik.totalSiswa;
+
+
+  document.getElementById(
+    "hadir"
+  ).innerText =
+    statistik.hadir;
+
+
+  document.getElementById(
+    "izin"
+  ).innerText =
+    statistik.izin;
+
+
+  document.getElementById(
+    "sakit"
+  ).innerText =
+    statistik.sakit;
+
+
+  document.getElementById(
+    "alpa"
+  ).innerText =
+    statistik.alpa;
+
+
+  document.getElementById(
+    "belumAbsen"
+  ).innerText =
+    statistik.belumAbsen;
+
+
+  const tbody =
+    document.getElementById(
+      "tableBody"
+    );
+
+
+  tbody.innerHTML = "";
+
+
+  if (
+    !data.absensi ||
+    data.absensi.length === 0
+  ) {
+
+    tbody.innerHTML =
+      '<tr>' +
+      '<td colspan="6" style="text-align:center">' +
+      'Belum ada data absensi pada tanggal ini.' +
+      '</td>' +
+      '</tr>';
+
+    return;
+  }
+
+
+  data.absensi.forEach(
+    function(item, index) {
+
+      const tr =
+        document.createElement("tr");
+
+
+      tr.innerHTML =
+
+        "<td>" +
+        (index + 1) +
+        "</td>" +
+
+        "<td>" +
+        escapeHtml(item.nama) +
+        "</td>" +
+
+        "<td>" +
+        escapeHtml(item.kelas) +
+        "</td>" +
+
+        '<td class="status">' +
+        escapeHtml(item.status) +
+        "</td>" +
+
+        "<td>" +
+        escapeHtml(item.tanggal) +
+        "</td>" +
+
+        "<td>" +
+        escapeHtml(item.jam) +
+        "</td>";
+
+
+      tbody.appendChild(tr);
+
+    }
+  );
+}
+
+
+function escapeHtml(text) {
+
+  const div =
+    document.createElement("div");
+
+  div.textContent =
+    text || "";
+
+  return div.innerHTML;
+}
+
+
+setTanggalHariIni();
+
+loadDashboard();
+
+</script>
+
+</body>
+</html>
