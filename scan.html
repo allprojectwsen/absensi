@@ -36,42 +36,78 @@
     let sudahScan = false;
 
 
+    // ==========================================
+    // KIRIM DATA KE GOOGLE APPS SCRIPT
+    // ==========================================
+
+    async function kirim(data) {
+
+      const response = await fetch(API_URL, {
+
+        method: "POST",
+
+        body: JSON.stringify(data)
+
+      });
+
+      return await response.json();
+
+    }
+
+
+    // ==========================================
+    // SETELAH QR BERHASIL DIBACA
+    // ==========================================
+
     async function prosesQR(qrText) {
 
       if (sudahScan) return;
 
       sudahScan = true;
 
-      const hasil = document.getElementById("hasil");
+
+      const hasil =
+        document.getElementById("hasil");
+
 
       hasil.innerHTML =
-        "⏳ Membaca data siswa...";
+        "⏳ Mencari data siswa...";
 
 
       try {
 
-        const response = await fetch(API_URL, {
+        // PENTING:
+        // Menggunakan action yang memang ada
+        // di Code.gs kamu yaitu "cariSiswa"
 
-          method: "POST",
+        const data = await kirim({
 
-          body: JSON.stringify({
+          action: "cariSiswa",
 
-            action: "getStudentById",
-
-            id: qrText
-
-          })
+          id: qrText
 
         });
 
 
-        const data = await response.json();
-
-
         if (!data.success) {
 
-          hasil.innerHTML =
-            "❌ Siswa tidak ditemukan: " + qrText;
+          hasil.innerHTML = `
+
+            <h2>❌ Siswa Tidak Ditemukan</h2>
+
+            <p>${data.message}</p>
+
+            <p>ID QR:</p>
+
+            <b>${qrText}</b>
+
+            <br><br>
+
+            <button onclick="scanLagi()">
+              📷 Scan Lagi
+            </button>
+
+          `;
 
           sudahScan = false;
 
@@ -80,27 +116,47 @@
         }
 
 
-        const siswa = data.student;
-
+        // ======================================
+        // SISWA DITEMUKAN
+        // ======================================
 
         hasil.innerHTML = `
 
-          <h2>✅ Siswa ditemukan</h2>
+          <h2>✅ Siswa Ditemukan</h2>
 
           <p>
-            <b>ID:</b> ${siswa.id}
+            <b>ID:</b><br>
+            ${data.id}
           </p>
 
           <p>
-            <b>Nama:</b> ${siswa.nama}
+            <b>Nama:</b><br>
+            ${data.nama}
           </p>
 
           <p>
-            <b>Kelas:</b> ${siswa.kelas}
+            <b>Kelas:</b><br>
+            ${data.kelas}
           </p>
 
-          <button onclick="absen('${siswa.id}')">
-            ✅ ABSEN SEKARANG
+          <hr>
+
+          <h3>Pilih Status</h3>
+
+          <button onclick="absen('${data.id}', 'Hadir')">
+            ✅ HADIR
+          </button>
+
+          <button onclick="absen('${data.id}', 'Izin')">
+            📝 IZIN
+          </button>
+
+          <button onclick="absen('${data.id}', 'Sakit')">
+            🤒 SAKIT
+          </button>
+
+          <button onclick="absen('${data.id}', 'Alpa')">
+            ❌ ALPA
           </button>
 
         `;
@@ -108,8 +164,19 @@
 
       } catch (error) {
 
-        hasil.innerHTML =
-          "❌ Gagal terhubung ke server.";
+        hasil.innerHTML = `
+
+          <h2>❌ Gagal Terhubung</h2>
+
+          <p>
+            Tidak dapat terhubung ke server.
+          </p>
+
+          <button onclick="scanLagi()">
+            📷 Scan Lagi
+          </button>
+
+        `;
 
         sudahScan = false;
 
@@ -118,9 +185,15 @@
     }
 
 
-    async function absen(id) {
+    // ==========================================
+    // SIMPAN ABSENSI
+    // ==========================================
 
-      const hasil = document.getElementById("hasil");
+    async function absen(id, status) {
+
+      const hasil =
+        document.getElementById("hasil");
+
 
       hasil.innerHTML =
         "⏳ Menyimpan absensi...";
@@ -128,23 +201,23 @@
 
       try {
 
-        const response = await fetch(API_URL, {
+        // PENTING:
+        // Code.gs menggunakan action "absensi"
 
-          method: "POST",
+        const data = await kirim({
 
-          body: JSON.stringify({
+          action: "absensi",
 
-            action: "absen",
+          id: id,
 
-            id: id
-
-          })
+          status: status
 
         });
 
 
-        const data = await response.json();
-
+        // ======================================
+        // ABSEN BERHASIL
+        // ======================================
 
         if (data.success) {
 
@@ -152,18 +225,86 @@
 
             <h2>✅ ABSENSI BERHASIL</h2>
 
-            <p>Data sudah tersimpan.</p>
+            <p>
+              <b>Nama:</b><br>
+              ${data.nama}
+            </p>
 
-            <button onclick="location.reload()">
-              📷 Scan Siswa Berikutnya
+            <p>
+              <b>Kelas:</b><br>
+              ${data.kelas}
+            </p>
+
+            <p>
+              <b>Status:</b><br>
+              ${data.status}
+            </p>
+
+            <p>
+              <b>Tanggal:</b><br>
+              ${data.tanggal}
+            </p>
+
+            <p>
+              <b>Jam:</b><br>
+              ${data.jam} WIB
+            </p>
+
+            <br>
+
+            <button onclick="scanLagi()">
+              📷 SCAN SISWA BERIKUTNYA
             </button>
 
           `;
 
-        } else {
+        }
 
-          hasil.innerHTML =
-            "❌ " + data.message;
+        // ======================================
+        // ABSEN GANDA
+        // ======================================
+
+        else if (data.duplicate) {
+
+          hasil.innerHTML = `
+
+            <h2>⚠️ SUDAH ABSEN</h2>
+
+            <p>
+              ${data.message}
+            </p>
+
+            <br>
+
+            <button onclick="scanLagi()">
+              📷 SCAN SISWA BERIKUTNYA
+            </button>
+
+          `;
+
+        }
+
+        // ======================================
+        // ERROR LAIN
+        // ======================================
+
+        else {
+
+          hasil.innerHTML = `
+
+            <h2>❌ Gagal</h2>
+
+            <p>
+              ${data.message}
+            </p>
+
+            <br>
+
+            <button onclick="scanLagi()">
+              📷 Scan Lagi
+            </button>
+
+          `;
 
           sudahScan = false;
 
@@ -172,8 +313,19 @@
 
       } catch (error) {
 
-        hasil.innerHTML =
-          "❌ Gagal menyimpan absensi.";
+        hasil.innerHTML = `
+
+          <h2>❌ Gagal menyimpan</h2>
+
+          <p>
+            Terjadi kesalahan saat menyimpan absensi.
+          </p>
+
+          <button onclick="scanLagi()">
+            📷 Scan Lagi
+          </button>
+
+        `;
 
         sudahScan = false;
 
@@ -181,6 +333,21 @@
 
     }
 
+
+    // ==========================================
+    // SCAN LAGI
+    // ==========================================
+
+    function scanLagi() {
+
+      location.reload();
+
+    }
+
+
+    // ==========================================
+    // JALANKAN QR SCANNER
+    // ==========================================
 
     const scanner =
       new Html5QrcodeScanner(
@@ -192,8 +359,11 @@
           fps: 10,
 
           qrbox: {
+
             width: 250,
+
             height: 250
+
           }
 
         },
