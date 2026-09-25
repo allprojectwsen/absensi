@@ -1,516 +1,624 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard Absensi</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+<title>Dashboard Absensi</title>
 
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
-      color: #222;
-    }
+<style>
 
-    .header {
-      background: #111827;
-      color: white;
-      padding: 20px;
-      text-align: center;
-    }
+*{
+  box-sizing:border-box;
+}
 
-    .header h1 {
-      margin: 0 0 6px;
-      font-size: 24px;
-    }
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f4f6f8;
+  color:#222;
+}
 
-    .header p {
-      margin: 0;
-      opacity: 0.8;
-    }
+.container{
+  max-width:1100px;
+  margin:auto;
+  padding:20px;
+}
 
-    .container {
-      max-width: 1100px;
-      margin: auto;
-      padding: 20px;
-    }
+h1{
+  margin-bottom:5px;
+}
 
-    .filter {
-      background: white;
-      padding: 18px;
-      border-radius: 12px;
-      margin-bottom: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
+.tanggal-box{
+  background:white;
+  padding:15px;
+  border-radius:12px;
+  margin:20px 0;
+}
 
-    .filter label {
-      display: block;
-      font-weight: bold;
-      margin-bottom: 8px;
-    }
+input{
+  padding:10px;
+  border:1px solid #ccc;
+  border-radius:8px;
+  font-size:15px;
+}
 
-    .filter input {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 16px;
-    }
+button{
+  padding:10px 15px;
+  border:0;
+  border-radius:8px;
+  cursor:pointer;
+  background:#222;
+  color:white;
+  margin-left:5px;
+}
 
-    .filter button {
-      width: 100%;
-      margin-top: 10px;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      background: #111827;
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
-    }
+.statistik{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:12px;
+  margin-bottom:20px;
+}
 
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 15px;
-      margin-bottom: 20px;
-    }
+.card{
+  background:white;
+  padding:18px;
+  border-radius:12px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
 
-    .card {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
+.card h3{
+  margin:0 0 8px;
+  font-size:15px;
+}
 
-    .card h3 {
-      margin: 0 0 10px;
-      font-size: 15px;
-      color: #666;
-    }
+.angka{
+  font-size:28px;
+  font-weight:bold;
+}
 
-    .card .number {
-      font-size: 30px;
-      font-weight: bold;
-    }
+.section{
+  background:white;
+  padding:18px;
+  border-radius:12px;
+  margin-top:20px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
 
-    .table-box {
-      background: white;
-      padding: 15px;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      overflow-x: auto;
-    }
+.section h2{
+  margin-top:0;
+}
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 650px;
-    }
+table{
+  width:100%;
+  border-collapse:collapse;
+}
 
-    th,
-    td {
-      padding: 12px;
-      border-bottom: 1px solid #eee;
-      text-align: left;
-    }
+th,td{
+  padding:10px;
+  border-bottom:1px solid #ddd;
+  text-align:left;
+}
 
-    th {
-      background: #f3f4f6;
-    }
+th{
+  background:#f1f1f1;
+}
 
-    .status {
-      font-weight: bold;
-    }
+.kosong{
+  padding:15px;
+  color:#666;
+}
 
-    .loading {
-      text-align: center;
-      padding: 20px;
-      color: #666;
-    }
+.belum{
+  color:#d32f2f;
+  font-weight:bold;
+}
 
-    .error {
-      background: #fee2e2;
-      color: #991b1b;
-      padding: 12px;
-      border-radius: 8px;
-      margin-bottom: 15px;
-      display: none;
-    }
+.status-hadir{
+  color:green;
+  font-weight:bold;
+}
 
-    @media (max-width: 700px) {
-      .cards {
-        grid-template-columns: repeat(2, 1fr);
-      }
+.status-izin{
+  color:#d68b00;
+  font-weight:bold;
+}
 
-      .card .number {
-        font-size: 25px;
-      }
-    }
-  </style>
+.status-sakit{
+  color:#1976d2;
+  font-weight:bold;
+}
+
+.status-alpa{
+  color:#d32f2f;
+  font-weight:bold;
+}
+
+@media(max-width:600px){
+
+  .container{
+    padding:12px;
+  }
+
+  table{
+    font-size:13px;
+  }
+
+  th,td{
+    padding:8px;
+  }
+
+  button{
+    margin-top:8px;
+    margin-left:0;
+  }
+
+}
+
+</style>
 </head>
 
 <body>
 
-  <div class="header">
-    <h1>📊 Dashboard Absensi</h1>
-    <p>Rekap kehadiran siswa</p>
-  </div>
+<div class="container">
 
-  <div class="container">
+<h1>📊 Dashboard Absensi</h1>
 
-    <div class="filter">
+<div id="infoTanggal"></div>
 
-      <label>Pilih Tanggal</label>
+<div class="tanggal-box">
 
-      <input
-        type="date"
-        id="tanggal"
-      >
+<label>Pilih tanggal:</label>
 
-      <button onclick="loadDashboard()">
-        🔄 Tampilkan Rekap
-      </button>
+<input
+  type="date"
+  id="tanggal"
+>
 
-    </div>
+<button onclick="loadDashboard()">
+  Tampilkan
+</button>
 
-    <div id="error" class="error"></div>
+</div>
 
-    <div class="cards">
 
-      <div class="card">
-        <h3>Total Siswa</h3>
-        <div class="number" id="totalSiswa">-</div>
-      </div>
+<!-- STATISTIK -->
 
-      <div class="card">
-        <h3>Hadir</h3>
-        <div class="number" id="hadir">-</div>
-      </div>
+<div class="statistik">
 
-      <div class="card">
-        <h3>Izin</h3>
-        <div class="number" id="izin">-</div>
-      </div>
+<div class="card">
+<h3>Total Siswa</h3>
+<div class="angka" id="totalSiswa">0</div>
+</div>
 
-      <div class="card">
-        <h3>Sakit</h3>
-        <div class="number" id="sakit">-</div>
-      </div>
+<div class="card">
+<h3>Hadir</h3>
+<div class="angka" id="hadir">0</div>
+</div>
 
-      <div class="card">
-        <h3>Alpa</h3>
-        <div class="number" id="alpa">-</div>
-      </div>
+<div class="card">
+<h3>Izin</h3>
+<div class="angka" id="izin">0</div>
+</div>
 
-      <div class="card">
-        <h3>Belum Absen</h3>
-        <div class="number" id="belumAbsen">-</div>
-      </div>
+<div class="card">
+<h3>Sakit</h3>
+<div class="angka" id="sakit">0</div>
+</div>
 
-    </div>
+<div class="card">
+<h3>Alpa</h3>
+<div class="angka" id="alpa">0</div>
+</div>
 
-    <div class="table-box">
+<div class="card">
+<h3>Belum Absen</h3>
+<div class="angka" id="belumAbsen">0</div>
+</div>
 
-      <h2>Rekap Absensi</h2>
+</div>
 
-      <div id="loading" class="loading">
-        Memuat data...
-      </div>
 
-      <table>
+<!-- BELUM ABSEN -->
 
-        <thead>
-          <tr>
-            <th>No</th>
-            <th>Nama</th>
-            <th>Kelas</th>
-            <th>Status</th>
-            <th>Tanggal</th>
-            <th>Jam</th>
-          </tr>
-        </thead>
+<div class="section">
 
-        <tbody id="tableBody"></tbody>
+<h2>🔴 Daftar Belum Absen</h2>
 
-      </table>
+<div id="daftarBelumAbsen">
+Memuat data...
+</div>
 
-    </div>
+</div>
 
-  </div>
+
+<!-- ABSENSI -->
+
+<div class="section">
+
+<h2>📋 Daftar Absensi</h2>
+
+<div id="daftarAbsensi">
+Memuat data...
+</div>
+
+</div>
+
+</div>
+
 
 <script>
 
 const API_URL =
-  "https://script.google.com/macros/s/AKfycbwCLZrt29EQ_CTT11r9OC0EKha4wajjnTEYR9wzTicyGi93zf-xRtDnR770q1tqw9C9/exec";
+"https://script.google.com/macros/s/AKfycbwCLZrt29EQ_CTT11r9OC0EKha4wajjnTEYR9wzTicyGi93zf-xRtDnR770q1tqw9C9/exec";
 
-const ADMIN_PIN = "123456";
-
-
-function setTanggalHariIni() {
-
-  const sekarang = new Date();
-
-  const tahun =
-    sekarang.getFullYear();
-
-  const bulan =
-    String(
-      sekarang.getMonth() + 1
-    ).padStart(2, "0");
-
-  const hari =
-    String(
-      sekarang.getDate()
-    ).padStart(2, "0");
-
-  document.getElementById("tanggal").value =
-    tahun + "-" + bulan + "-" + hari;
-}
+const ADMIN_PIN =
+"123456";
 
 
-function formatTanggal(tanggal) {
+// ======================================================
+// TANGGAL HARI INI
+// ======================================================
 
-  const bagian =
-    tanggal.split("-");
+function tanggalHariIni(){
 
-  if (bagian.length !== 3) {
-    return tanggal;
-  }
+  const d=new Date();
 
-  return (
-    bagian[2] +
-    "/" +
-    bagian[1] +
-    "/" +
-    bagian[0]
+  return(
+    d.getFullYear()+"-"+
+    String(d.getMonth()+1).padStart(2,"0")+"-"+
+    String(d.getDate()).padStart(2,"0")
   );
+
 }
 
 
-async function loadDashboard() {
+// ======================================================
+// REQUEST API
+// ======================================================
 
-  const errorBox =
-    document.getElementById("error");
+async function requestAPI(data){
 
-  const loading =
-    document.getElementById("loading");
+  const response=await fetch(
+    API_URL,
+    {
+      method:"POST",
+      body:JSON.stringify(data)
+    }
+  );
 
-  errorBox.style.display = "none";
+  return await response.json();
 
-  loading.style.display = "block";
+}
 
 
-  const tanggalInput =
+// ======================================================
+// LOAD DASHBOARD
+// ======================================================
+
+async function loadDashboard(){
+
+  const tanggal=
     document.getElementById("tanggal").value;
 
+  if(!tanggal){
 
-  if (!tanggalInput) {
-
-    errorBox.innerText =
-      "Silakan pilih tanggal.";
-
-    errorBox.style.display = "block";
-
-    loading.style.display = "none";
+    alert("Pilih tanggal terlebih dahulu.");
 
     return;
+
   }
 
+  document.getElementById(
+    "daftarBelumAbsen"
+  ).innerHTML="Memuat data...";
 
-  const tanggal =
-    formatTanggal(tanggalInput);
-
-
-  try {
-
-    const response =
-      await fetch(
-        API_URL,
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "text/plain;charset=utf-8"
-          },
-
-          body:
-            JSON.stringify({
-
-              action:
-                "getDashboard",
-
-              pin:
-                ADMIN_PIN,
-
-              tanggal:
-                tanggal
-
-            })
-        }
-      );
+  document.getElementById(
+    "daftarAbsensi"
+  ).innerHTML="Memuat data...";
 
 
-    const data =
-      await response.json();
+  try{
+
+    // AMBIL DATA DASHBOARD
+    const dashboard=
+      await requestAPI({
+
+        action:"getDashboard",
+
+        pin:ADMIN_PIN,
+
+        tanggal:tanggal
+
+      });
 
 
-    if (!data.success) {
+    if(!dashboard.success){
 
       throw new Error(
-        data.message ||
-        "Gagal mengambil data."
+        dashboard.message ||
+        "Gagal mengambil dashboard."
       );
+
     }
 
 
-    tampilkanDashboard(data);
+    // AMBIL SEMUA SISWA
+    const siswaData=
+      await requestAPI({
+
+        action:"getStudents",
+
+        pin:ADMIN_PIN
+
+      });
 
 
-  } catch (error) {
+    if(!siswaData.success){
 
-    errorBox.innerText =
-      "Gagal mengambil data: " +
-      error.message;
+      throw new Error(
+        siswaData.message ||
+        "Gagal mengambil data siswa."
+      );
 
-    errorBox.style.display =
-      "block";
-  }
-
-
-  loading.style.display =
-    "none";
-}
+    }
 
 
-function tampilkanDashboard(data) {
-
-  const statistik =
-    data.statistik;
-
-
-  document.getElementById(
-    "totalSiswa"
-  ).innerText =
-    statistik.totalSiswa;
-
-
-  document.getElementById(
-    "hadir"
-  ).innerText =
-    statistik.hadir;
-
-
-  document.getElementById(
-    "izin"
-  ).innerText =
-    statistik.izin;
-
-
-  document.getElementById(
-    "sakit"
-  ).innerText =
-    statistik.sakit;
-
-
-  document.getElementById(
-    "alpa"
-  ).innerText =
-    statistik.alpa;
-
-
-  document.getElementById(
-    "belumAbsen"
-  ).innerText =
-    statistik.belumAbsen;
-
-
-  const tbody =
-    document.getElementById(
-      "tableBody"
+    tampilkanStatistik(
+      dashboard
     );
 
 
-  tbody.innerHTML = "";
+    tampilkanBelumAbsen(
+      siswaData.students || [],
+      dashboard.absensi || []
+    );
 
 
-  if (
-    !data.absensi ||
-    data.absensi.length === 0
-  ) {
+    tampilkanAbsensi(
+      dashboard.absensi || []
+    );
 
-    tbody.innerHTML =
-      '<tr>' +
-      '<td colspan="6" style="text-align:center">' +
-      'Belum ada data absensi pada tanggal ini.' +
-      '</td>' +
-      '</tr>';
 
-    return;
+  }catch(error){
+
+    document.getElementById(
+      "daftarBelumAbsen"
+    ).innerHTML=
+      "<p>❌ "+escapeHtml(error.message)+"</p>";
+
+    document.getElementById(
+      "daftarAbsensi"
+    ).innerHTML=
+      "<p>❌ Gagal mengambil data.</p>";
+
   }
 
-
-  data.absensi.forEach(
-    function(item, index) {
-
-      const tr =
-        document.createElement("tr");
+}
 
 
-      tr.innerHTML =
+// ======================================================
+// STATISTIK
+// ======================================================
 
-        "<td>" +
-        (index + 1) +
-        "</td>" +
+function tampilkanStatistik(data){
 
-        "<td>" +
-        escapeHtml(item.nama) +
-        "</td>" +
+  const s=data.statistik;
 
-        "<td>" +
-        escapeHtml(item.kelas) +
-        "</td>" +
+  document.getElementById(
+    "totalSiswa"
+  ).textContent=s.totalSiswa;
 
-        '<td class="status">' +
-        escapeHtml(item.status) +
-        "</td>" +
+  document.getElementById(
+    "hadir"
+  ).textContent=s.hadir;
 
-        "<td>" +
-        escapeHtml(item.tanggal) +
-        "</td>" +
+  document.getElementById(
+    "izin"
+  ).textContent=s.izin;
 
-        "<td>" +
-        escapeHtml(item.jam) +
-        "</td>";
+  document.getElementById(
+    "sakit"
+  ).textContent=s.sakit;
+
+  document.getElementById(
+    "alpa"
+  ).textContent=s.alpa;
+
+  document.getElementById(
+    "belumAbsen"
+  ).textContent=s.belumAbsen;
+
+}
 
 
-      tbody.appendChild(tr);
+// ======================================================
+// DAFTAR BELUM ABSEN
+// ======================================================
+
+function tampilkanBelumAbsen(
+  siswa,
+  absensi
+){
+
+  const sudahAbsen={};
+
+
+  absensi.forEach(function(item){
+
+    sudahAbsen[
+      String(item.id).trim()
+    ]=true;
+
+  });
+
+
+  const belum=siswa.filter(
+    function(item){
+
+      return !sudahAbsen[
+        String(item.id).trim()
+      ];
 
     }
   );
+
+
+  const container=
+    document.getElementById(
+      "daftarBelumAbsen"
+    );
+
+
+  if(belum.length===0){
+
+    container.innerHTML=
+      "<div class='kosong'>"+
+      "✅ Semua siswa sudah absen."+
+      "</div>";
+
+    return;
+
+  }
+
+
+  let html=
+    "<table>"+
+    "<tr>"+
+    "<th>No</th>"+
+    "<th>Nama</th>"+
+    "<th>Kelas</th>"+
+    "</tr>";
+
+
+  belum.forEach(
+    function(item,index){
+
+      html+=
+        "<tr>"+
+        "<td>"+(index+1)+"</td>"+
+        "<td class='belum'>"+
+        escapeHtml(item.nama)+
+        "</td>"+
+        "<td>"+
+        escapeHtml(item.kelas)+
+        "</td>"+
+        "</tr>";
+
+    }
+  );
+
+
+  html+="</table>";
+
+  container.innerHTML=html;
+
 }
 
 
-function escapeHtml(text) {
+// ======================================================
+// DAFTAR ABSENSI
+// ======================================================
 
-  const div =
-    document.createElement("div");
+function tampilkanAbsensi(absensi){
 
-  div.textContent =
-    text || "";
+  const container=
+    document.getElementById(
+      "daftarAbsensi"
+    );
 
-  return div.innerHTML;
+
+  if(absensi.length===0){
+
+    container.innerHTML=
+      "<div class='kosong'>"+
+      "Belum ada siswa yang absen."+
+      "</div>";
+
+    return;
+
+  }
+
+
+  let html=
+    "<table>"+
+    "<tr>"+
+    "<th>No</th>"+
+    "<th>Nama</th>"+
+    "<th>Kelas</th>"+
+    "<th>Status</th>"+
+    "<th>Jam</th>"+
+    "</tr>";
+
+
+  absensi.forEach(
+    function(item,index){
+
+      const status=
+        String(item.status || "");
+
+      const classStatus=
+        "status-"+
+        status.toLowerCase();
+
+
+      html+=
+        "<tr>"+
+        "<td>"+(index+1)+"</td>"+
+        "<td>"+
+        escapeHtml(item.nama)+
+        "</td>"+
+        "<td>"+
+        escapeHtml(item.kelas)+
+        "</td>"+
+        "<td class='"+classStatus+"'>"+
+        escapeHtml(status)+
+        "</td>"+
+        "<td>"+
+        escapeHtml(item.jam)+
+        "</td>"+
+        "</tr>";
+
+    }
+  );
+
+
+  html+="</table>";
+
+  container.innerHTML=html;
+
 }
 
 
-setTanggalHariIni();
+// ======================================================
+// ESCAPE HTML
+// ======================================================
+
+function escapeHtml(text){
+
+  return String(text || "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+
+}
+
+
+// ======================================================
+// TANGGAL DEFAULT
+// ======================================================
+
+document.getElementById(
+  "tanggal"
+).value=
+  tanggalHariIni();
+
+
+// ======================================================
+// LOAD OTOMATIS
+// ======================================================
 
 loadDashboard();
 
