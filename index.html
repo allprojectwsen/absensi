@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Absensi Siswa</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>📋 Absensi Siswa</h1>
+    <p>Silakan masukkan ID siswa untuk melakukan absensi.</p>
+
+    <form id="absensiForm">
+
+      <label for="id">ID Siswa</label>
+      <input
+        type="text"
+        id="id"
+        placeholder="Contoh: S001"
+        required
+      >
+
+      <label for="status">Status Kehadiran</label>
+      <select id="status" required>
+        <option value="">-- Pilih Status --</option>
+        <option value="Hadir">Hadir</option>
+        <option value="Izin">Izin</option>
+        <option value="Sakit">Sakit</option>
+        <option value="Alpa">Alpa</option>
+      </select>
+
+      <button type="submit">Kirim Absensi</button>
+
+    </form>
+
+    <div id="hasil"></div>
+  </div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbwCLZrt29EQ_CTT11r9OC0EKha4wajjnTEYR9wzTicyGi93zf-xRtDnR770q1tqw9C9/exec";
+
+    const form = document.getElementById("absensiForm");
+    const hasil = document.getElementById("hasil");
+
+    form.addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      const id = document.getElementById("id").value.trim();
+      const status = document.getElementById("status").value;
+
+      hasil.innerHTML = "⏳ Mengirim absensi...";
+
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "absensi",
+            id: id,
+            status: status
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          hasil.innerHTML =
+            "✅ " + data.message;
+          form.reset();
+        } else {
+          hasil.innerHTML =
+            "❌ " + data.message;
+        }
+
+      } catch (error) {
+        hasil.innerHTML =
+          "❌ Gagal terhubung ke server.";
+      }
+    });
+  </script>
+
+</body>
+</html>
