@@ -1,0 +1,190 @@
+// ======================================================
+// DASHBOARD & REKAP ABSENSI
+// ======================================================
+
+function getDashboard(pin, tanggal) {
+
+  // Cek PIN admin
+  if (
+    String(pin) !==
+    String(ADMIN_PIN)
+  ) {
+
+    throw new Error(
+      "PIN admin salah."
+    );
+
+  }
+
+  const ss =
+    SpreadsheetApp.openById(
+      SPREADSHEET_ID
+    );
+
+  const siswaSheet =
+    ss.getSheetByName(
+      SHEET_SISWA
+    );
+
+  const absensiSheet =
+    ss.getSheetByName(
+      SHEET_ABSENSI
+    );
+
+
+  // ==========================================
+  // TOTAL SISWA
+  // ==========================================
+
+  let totalSiswa = 0;
+
+  if (siswaSheet) {
+
+    const lastRow =
+      siswaSheet.getLastRow();
+
+    if (lastRow >= 2) {
+
+      totalSiswa =
+        lastRow - 1;
+
+    }
+
+  }
+
+
+  // ==========================================
+  // TANGGAL
+  // ==========================================
+
+  if (!tanggal) {
+
+    tanggal =
+      Utilities.formatDate(
+        new Date(),
+        TIMEZONE,
+        "dd/MM/yyyy"
+      );
+
+  }
+
+
+  // ==========================================
+  // DATA ABSENSI
+  // ==========================================
+
+  let hadir = 0;
+  let izin = 0;
+  let sakit = 0;
+  let alpa = 0;
+
+  let rekap = [];
+
+
+  if (absensiSheet) {
+
+    const lastRow =
+      absensiSheet.getLastRow();
+
+    if (lastRow >= 2) {
+
+      const data =
+        absensiSheet
+          .getRange(
+            2,
+            1,
+            lastRow - 1,
+            7
+          )
+          .getValues();
+
+
+      data.forEach(function(row) {
+
+        const id =
+          String(row[0]).trim();
+
+        const nama =
+          String(row[1]);
+
+        const kelas =
+          String(row[2]);
+
+        const status =
+          String(row[3]);
+
+        const tanggalAbsen =
+          String(row[4]).trim();
+
+        const jam =
+          String(row[5]);
+
+
+        if (
+          tanggalAbsen ===
+          tanggal
+        ) {
+
+          if (status === "Hadir") {
+            hadir++;
+          }
+
+          if (status === "Izin") {
+            izin++;
+          }
+
+          if (status === "Sakit") {
+            sakit++;
+          }
+
+          if (status === "Alpa") {
+            alpa++;
+          }
+
+
+          rekap.push({
+
+            id: id,
+
+            nama: nama,
+
+            kelas: kelas,
+
+            status: status,
+
+            tanggal: tanggalAbsen,
+
+            jam: jam
+
+          });
+
+        }
+
+      });
+
+    }
+
+  }
+
+
+  return {
+
+    success: true,
+
+    tanggal: tanggal,
+
+    totalSiswa: totalSiswa,
+
+    hadir: hadir,
+
+    izin: izin,
+
+    sakit: sakit,
+
+    alpa: alpa,
+
+    rekap: rekap
+
+  };
+
+}
