@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Absensi</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>🔐 Admin Absensi</h1>
+    <p>Kelola data siswa</p>
+
+    <div id="loginBox">
+      <label for="pin">PIN Admin</label>
+      <input
+        type="password"
+        id="pin"
+        placeholder="Masukkan PIN"
+      >
+
+      <button onclick="loginAdmin()">Login</button>
+    </div>
+
+    <div id="adminBox" style="display:none;">
+
+      <h2>Tambah Siswa</h2>
+
+      <label for="nama">Nama Siswa</label>
+      <input
+        type="text"
+        id="nama"
+        placeholder="Nama lengkap"
+      >
+
+      <label for="kelas">Kelas</label>
+      <input
+        type="text"
+        id="kelas"
+        placeholder="Contoh: X TKR 1"
+      >
+
+      <button onclick="tambahSiswa()">Tambah Siswa</button>
+
+      <div id="hasil"></div>
+
+      <hr>
+
+      <h2>Daftar Siswa</h2>
+
+      <button onclick="lihatSiswa()">Refresh Daftar</button>
+
+      <div id="daftar"></div>
+
+    </div>
+  </div>
+
+  <script>
+    const API_URL =
+      "https://script.google.com/macros/s/AKfycbwCLZrt29EQ_CTT11r9OC0EKha4wajjnTEYR9wzTicyGi93zf-xRtDnR770q1tqw9C9/exec";
+
+    async function kirim(data) {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify(data)
+      });
+
+      return await response.json();
+    }
+
+    async function loginAdmin() {
+      const pin = document.getElementById("pin").value;
+      const hasil = document.getElementById("hasil");
+
+      hasil.innerHTML = "⏳ Memeriksa PIN...";
+
+      try {
+        const data = await kirim({
+          action: "loginAdmin",
+          pin: pin
+        });
+
+        if (data.success) {
+          document.getElementById("loginBox").style.display = "none";
+          document.getElementById("adminBox").style.display = "block";
+          hasil.innerHTML = "✅ Login berhasil";
+          lihatSiswa();
+        } else {
+          hasil.innerHTML = "❌ " + data.message;
+        }
+
+      } catch (error) {
+        hasil.innerHTML = "❌ Gagal terhubung ke server.";
+      }
+    }
+
+    async function tambahSiswa() {
+      const nama = document.getElementById("nama").value.trim();
+      const kelas = document.getElementById("kelas").value.trim();
+      const hasil = document.getElementById("hasil");
+
+      if (!nama || !kelas) {
+        hasil.innerHTML = "❌ Nama dan kelas wajib diisi.";
+        return;
+      }
+
+      hasil.innerHTML = "⏳ Menambahkan siswa...";
+
+      try {
+        const data = await kirim({
+          action: "tambahSiswa",
+          nama: nama,
+          kelas: kelas
+        });
+
+        if (data.success) {
+          hasil.innerHTML =
+            "✅ Siswa berhasil ditambahkan. ID: " + data.id;
+
+          document.getElementById("nama").value = "";
+          document.getElementById("kelas").value = "";
+
+          lihatSiswa();
+        } else {
+          hasil.innerHTML = "❌ " + data.message;
+        }
+
+      } catch (error) {
+        hasil.innerHTML = "❌ Gagal terhubung ke server.";
+      }
+    }
+
+    async function lihatSiswa() {
+      const daftar = document.getElementById("daftar");
+
+      daftar.innerHTML = "⏳ Memuat data...";
+
+      try {
+        const data = await kirim({
+          action: "getStudents"
+        });
+
+        if (!data.success) {
+          daftar.innerHTML = "❌ " + data.message;
+          return;
+        }
+
+        if (data.students.length === 0) {
+          daftar.innerHTML = "Belum ada siswa.";
+          return;
+        }
+
+        let html = "<ul>";
+
+        data.students.forEach(function(siswa) {
+          html += `
+            <li>
+              <b>${siswa.id}</b> -
+              ${siswa.nama} -
+              ${siswa.kelas}
+            </li>
+          `;
+        });
+
+        html += "</ul>";
+
+        daftar.innerHTML = html;
+
+      } catch (error) {
+        daftar.innerHTML = "❌ Gagal mengambil data siswa.";
+      }
+    }
+  </script>
+
+</body>
+</html>
