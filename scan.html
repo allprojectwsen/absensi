@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scan Absensi</title>
+
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <div class="container">
+
+    <h1>📷 Scan Absensi</h1>
+
+    <p>Arahkan kamera ke QR Code siswa</p>
+
+    <div id="reader" style="width:100%;"></div>
+
+    <div id="hasil">
+      Silakan scan QR siswa.
+    </div>
+
+  </div>
+
+
+  <script>
+
+    const API_URL =
+      "https://script.google.com/macros/s/AKfycbwCLZrt29EQ_CTT11r9OC0EKha4wajjnTEYR9wzTicyGi93zf-xRtDnR770q1tqw9C9/exec";
+
+
+    let sudahScan = false;
+
+
+    async function prosesQR(qrText) {
+
+      if (sudahScan) return;
+
+      sudahScan = true;
+
+      const hasil = document.getElementById("hasil");
+
+      hasil.innerHTML =
+        "⏳ Membaca data siswa...";
+
+
+      try {
+
+        const response = await fetch(API_URL, {
+
+          method: "POST",
+
+          body: JSON.stringify({
+
+            action: "getStudentById",
+
+            id: qrText
+
+          })
+
+        });
+
+
+        const data = await response.json();
+
+
+        if (!data.success) {
+
+          hasil.innerHTML =
+            "❌ Siswa tidak ditemukan: " + qrText;
+
+          sudahScan = false;
+
+          return;
+
+        }
+
+
+        const siswa = data.student;
+
+
+        hasil.innerHTML = `
+
+          <h2>✅ Siswa ditemukan</h2>
+
+          <p>
+            <b>ID:</b> ${siswa.id}
+          </p>
+
+          <p>
+            <b>Nama:</b> ${siswa.nama}
+          </p>
+
+          <p>
+            <b>Kelas:</b> ${siswa.kelas}
+          </p>
+
+          <button onclick="absen('${siswa.id}')">
+            ✅ ABSEN SEKARANG
+          </button>
+
+        `;
+
+
+      } catch (error) {
+
+        hasil.innerHTML =
+          "❌ Gagal terhubung ke server.";
+
+        sudahScan = false;
+
+      }
+
+    }
+
+
+    async function absen(id) {
+
+      const hasil = document.getElementById("hasil");
+
+      hasil.innerHTML =
+        "⏳ Menyimpan absensi...";
+
+
+      try {
+
+        const response = await fetch(API_URL, {
+
+          method: "POST",
+
+          body: JSON.stringify({
+
+            action: "absen",
+
+            id: id
+
+          })
+
+        });
+
+
+        const data = await response.json();
+
+
+        if (data.success) {
+
+          hasil.innerHTML = `
+
+            <h2>✅ ABSENSI BERHASIL</h2>
+
+            <p>Data sudah tersimpan.</p>
+
+            <button onclick="location.reload()">
+              📷 Scan Siswa Berikutnya
+            </button>
+
+          `;
+
+        } else {
+
+          hasil.innerHTML =
+            "❌ " + data.message;
+
+          sudahScan = false;
+
+        }
+
+
+      } catch (error) {
+
+        hasil.innerHTML =
+          "❌ Gagal menyimpan absensi.";
+
+        sudahScan = false;
+
+      }
+
+    }
+
+
+    const scanner =
+      new Html5QrcodeScanner(
+
+        "reader",
+
+        {
+
+          fps: 10,
+
+          qrbox: {
+            width: 250,
+            height: 250
+          }
+
+        },
+
+        false
+
+      );
+
+
+    scanner.render(prosesQR);
+
+  </script>
+
+</body>
+</html>
